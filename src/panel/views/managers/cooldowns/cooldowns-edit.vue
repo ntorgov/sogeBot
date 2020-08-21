@@ -34,60 +34,67 @@
 
     <loading v-if="state.loading === 1"/>
     <b-form v-else>
-      <b-form-group
-        :label="'!' + translate('command') + ' ' + translate('or') + ' ' + translate('keyword')"
-        label-for="name"
-      >
-        <b-input-group>
-          <b-form-input
-            id="name"
-            v-model="item.name"
-            type="text"
-            :placeholder="translate('systems.cooldown.key.placeholder')"
-            @input="$v.item.name.$touch()"
-            :state="$v.item.name.$invalid && $v.item.name.$dirty ? false : null"
-          ></b-form-input>
-        </b-input-group>
-        <b-form-invalid-feedback :state="!($v.item.name.$invalid && $v.item.name.$dirty)">{{ translate('dialog.errors.required') }}</b-form-invalid-feedback>
-      </b-form-group>
-      <b-form-group
-        :label="translate('cooldown') + ' (' + this.translate('in-seconds') + ')'"
-        label-for="name"
-      >
-        <b-input-group>
-          <b-form-input
-            id="name"
-            v-model.number="seconds"
-            type="text"
-            @input="$v.item.miliseconds.$touch()"
-            :state="$v.item.miliseconds.$invalid && $v.item.miliseconds.$dirty ? false : null"
-          ></b-form-input>
-        </b-input-group>
-        <b-form-invalid-feedback :state="!($v.item.miliseconds.$invalid && $v.item.miliseconds.$dirty)">{{ translate('dialog.errors.minValue').replace('$value', 10) }}</b-form-invalid-feedback>
-      </b-form-group>
+      <name :value.sync="item.value" :forType="item.for" @touch="$v.item.name.$touch()" :state="$v.item.name.$invalid && $v.item.name.$dirty"/>
 
-      <b-form-group
-        :label="translate('commons.additional-settings')"
-      >
-        <button-with-icon :class="[ item.isErrorMsgQuiet ? 'btn-success' : 'btn-danger' ]" class="btn-reverse" :icon="item.isErrorMsgQuiet ? 'volume-off' : 'volume-up'" @click="item.isErrorMsgQuiet = !item.isErrorMsgQuiet">
-          {{ translate(item.isErrorMsgQuiet? 'quiet' : 'noisy') | capitalize }}
-        </button-with-icon>
-        <button-with-icon :class="[ item.isOwnerAffected ? 'btn-success' : 'btn-danger' ]" class="btn-reverse" :icon="item.isOwnerAffected ? 'check' : 'times'" @click="item.isOwnerAffected = !item.isOwnerAffected">
-          {{ translate('core.permissions.casters') | capitalize }}
-        </button-with-icon>
-        <button-with-icon :class="[ item.isModeratorAffected ? 'btn-success' : 'btn-danger' ]" class="btn-reverse" :icon="item.isModeratorAffected ? 'check' : 'times'" @click="item.isModeratorAffected = !item.isModeratorAffected">
-          {{ translate('core.permissions.moderators') | capitalize }}
-        </button-with-icon>
-        <button-with-icon :class="[ item.isSubscriberAffected ? 'btn-success' : 'btn-danger' ]" class="btn-reverse" :icon="item.isSubscriberAffected ? 'check' : 'times'" @click="item.isSubscriberAffected = !item.isSubscriberAffected">
-          {{ translate('core.permissions.subscribers') | capitalize }}
-        </button-with-icon>
-        <button-with-icon :class="[ item.isFollowerAffected ? 'btn-success' : 'btn-danger' ]" class="btn-reverse" :icon="item.isFollowerAffected ? 'check' : 'times'" @click="item.isFollowerAffected = !item.isFollowerAffected">
-          {{ translate('core.permissions.followers') | capitalize }}
-        </button-with-icon>
-        <button-with-icon :class="[ item.type === 'global' ? 'btn-primary' : 'btn-secondary' ]" class="btn-reverse" :icon="item.isFollowerAffected ? 'check' : 'times'" @click="item.type = item.type === 'global' ? 'user' : 'global'">
-          {{ translate(item.type) | capitalize }}
-        </button-with-icon>
-      </b-form-group>
+      <b-row>
+        <b-col>
+          <b-form-group :label="translate('systems.cooldown.type')">
+            <b-btn :variant="item.type === 'global' ? 'secondary' : 'outline-secondary'" @click="item.type = 'global'"><strong>global</strong> <small class="text-muted">users will share cooldown</small></b-btn>
+            <b-btn :variant="item.type === 'user' ? 'secondary' : 'outline-secondary'"  @click="item.type = 'user'"><strong>user</strong> <small class="text-muted">users will have own cooldown</small></b-btn>
+          </b-form-group>
+
+          <b-form-group :label="translate('systems.cooldown.pool')">
+            <b-btn :variant="item.pool === 'per-item' ? 'secondary' : 'outline-secondary'" @click="item.pool = 'per-item'"><strong>per item</strong> <small class="text-muted">each command, keyword will have own cooldown</small></b-btn>
+            <b-btn :variant="item.pool === 'shared' ? 'secondary' : 'outline-secondary'"  @click="item.pool = 'shared'"><strong>shared</strong> <small class="text-muted">each command, keyword will have shared cooldown</small></b-btn>
+          </b-form-group>
+
+          <b-form-group :label="translate('systems.cooldown.announce')">
+            <b-btn :variant="item.isErrorMsgQuiet ? 'secondary' : 'outline-secondary'" @click="item.isErrorMsgQuiet = true"><strong>quiet</strong> <small class="text-muted">cooldown won't send message into chat</small></b-btn>
+            <b-btn :variant="!item.isErrorMsgQuiet ? 'secondary' : 'outline-secondary'"  @click="item.isErrorMsgQuiet = false"><strong>noisy</strong> <small class="text-muted">cooldown and time until cooldown expires will be announced in chat</small></b-btn>
+          </b-form-group>
+
+          <b-form-group :label="translate('systems.cooldown.wipeType')">
+            <b-btn :variant="item.wipeType === 'full' ? 'secondary' : 'outline-secondary'" @click="item.wipeType = 'full'"><strong>full</strong> <small class="text-muted">cooldown will reset {{seconds}} seconds after <strong>first</strong> command/keyword usage</small></b-btn>
+            <b-btn :variant="item.wipeType === 'full-last' ? 'secondary' : 'outline-secondary'" @click="item.wipeType = 'full-last'"><strong>full (last)</strong> <small class="text-muted">cooldown will reset  {{seconds}} seconds after <strong>last</strong> command/keyword usage</small></b-btn>
+            <b-btn :variant="item.wipeType === 'gradual' ? 'secondary' : 'outline-secondary'"  @click="item.wipeType = 'gradual'"><strong>gradual</strong> <small class="text-muted">cooldown will gradually reset to usage limit</small></b-btn>
+          </b-form-group>
+        </b-col>
+        <b-col>
+          <global-permission-to-apply/>
+        </b-col>
+        <b-col>
+          <b-form-group
+            :label="translate('cooldown') + ' (' + this.translate('in-seconds') + ')'"
+            label-for="seconds"
+          >
+            <b-input-group>
+              <b-form-input
+                id="seconds"
+                v-model.number="seconds"
+                type="number"
+                @input="$v.item.miliseconds.$touch()"
+                :state="$v.item.miliseconds.$invalid && $v.item.miliseconds.$dirty ? false : null"
+              ></b-form-input>
+            </b-input-group>
+            <b-form-invalid-feedback :state="!($v.item.miliseconds.$invalid && $v.item.miliseconds.$dirty)">{{ translate('dialog.errors.minValue').replace('$value', 10) }}</b-form-invalid-feedback>
+          </b-form-group>
+          <b-form-group
+            :label="translate('usageLimit')"
+            label-for="usageLimit"
+          >
+            <b-input-group>
+              <b-form-input
+                id="usageLimit"
+                v-model.number="item.usageLimit"
+                type="number"
+                @input="$v.item.usageLimit.$touch()"
+                :state="$v.item.usageLimit.$invalid && $v.item.usageLimit.$dirty ? false : null"
+              ></b-form-input>
+            </b-input-group>
+            <b-form-invalid-feedback :state="!($v.item.usageLimit.$invalid && $v.item.usageLimit.$dirty)">{{ translate('dialog.errors.minValue').replace('$value', 1) }}</b-form-invalid-feedback>
+          </b-form-group>
+        </b-col>
+      </b-row>
     </b-form>
   </b-container>
 </template>
@@ -116,6 +123,8 @@ Component.registerHooks([
 
 @Component({
   components: {
+    'name': () => import('./components/name.vue'),
+    'global-permission-to-apply': () => import('./components/global-permission-to-apply.vue'),
     'loading': () => import('../../../components/loading.vue'),
   },
   filters: {
@@ -141,9 +150,12 @@ export default class cooldownEdit extends Vue {
 
   item: CooldownInterface = {
     id: uuid(),
-    name: '',
+    value: [],
     miliseconds: 600000,
     type: 'global',
+    pool: 'per-item',
+    wipeType: 'full',
+    usageLimit: 1,
     timestamp: 0,
     isErrorMsgQuiet: false,
     isEnabled: true,
@@ -167,7 +179,8 @@ export default class cooldownEdit extends Vue {
   validations = {
     item: {
       name: {required},
-      miliseconds: { required, minValue: minValue(10000) }
+      miliseconds: { required, minValue: minValue(10000) },
+      usageLimit: { required, minValue: minValue(1) }
     }
   }
 

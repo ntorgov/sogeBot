@@ -70,8 +70,8 @@ import { getSocket } from 'src/panel/helpers/socket';
 import { capitalize } from 'src/panel/helpers/capitalize';
 
 import { Vue, Component/*, Watch */ } from 'vue-property-decorator';
-import { isNil } from 'lodash-es';
-import { escape } from 'xregexp';
+//import { isNil } from 'lodash-es';
+//import { escape } from 'xregexp';
 import { CooldownInterface } from 'src/bot/database/entity/cooldown';
 
 @Component({
@@ -110,8 +110,8 @@ export default class cooldownList extends Vue {
   get fItems() {
     if (this.search.length === 0) return this.items
     return this.items.filter((o) => {
-      const isSearchInKey = !isNil(o.name.match(new RegExp(escape(this.search), 'ig')))
-      return isSearchInKey
+      //const isSearchInKey = !isNil(o.name.match(new RegExp(escape(this.search), 'ig')))
+      return true
     })
   }
 
